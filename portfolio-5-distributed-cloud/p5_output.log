@@ -1,0 +1,239 @@
+==> [1/2] Monthly partitioning demo (partition_setup.sql)
+psql:partition_setup.sql:21: NOTICE:  table "rental_p" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2025_11  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2025_12  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_01  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_02  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_03  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_04  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_05  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_06  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_07  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_08  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_09  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_10  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_11  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2026_12  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2027_01  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2027_02  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2027_03  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2027_04  (with EXCLUDE constraint)
+psql:partition_setup.sql:63: NOTICE:  Created partition rental_p_2027_05  (with EXCLUDE constraint)
+DO
+CREATE TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+INSERT 0 10091
+    partition     |    size    |                                  bound                                   
+------------------+------------+--------------------------------------------------------------------------
+ rental_p_2025_11 | 376 kB     | FOR VALUES FROM ('2025-11-01 00:00:00+01') TO ('2025-12-01 00:00:00+01')
+ rental_p_2025_12 | 432 kB     | FOR VALUES FROM ('2025-12-01 00:00:00+01') TO ('2026-01-01 00:00:00+01')
+ rental_p_2026_01 | 224 kB     | FOR VALUES FROM ('2026-01-01 00:00:00+01') TO ('2026-02-01 00:00:00+01')
+ rental_p_2026_02 | 120 kB     | FOR VALUES FROM ('2026-02-01 00:00:00+01') TO ('2026-03-01 00:00:00+01')
+ rental_p_2026_03 | 72 kB      | FOR VALUES FROM ('2026-03-01 00:00:00+01') TO ('2026-04-01 00:00:00+01')
+ rental_p_2026_04 | 32 kB      | FOR VALUES FROM ('2026-04-01 00:00:00+01') TO ('2026-05-01 00:00:00+01')
+ rental_p_2026_05 | 8192 bytes | FOR VALUES FROM ('2026-05-01 00:00:00+01') TO ('2026-06-01 00:00:00+01')
+ rental_p_2026_06 | 8192 bytes | FOR VALUES FROM ('2026-06-01 00:00:00+01') TO ('2026-07-01 00:00:00+01')
+ rental_p_2026_07 | 0 bytes    | FOR VALUES FROM ('2026-07-01 00:00:00+01') TO ('2026-08-01 00:00:00+01')
+ rental_p_2026_08 | 0 bytes    | FOR VALUES FROM ('2026-08-01 00:00:00+01') TO ('2026-09-01 00:00:00+01')
+ rental_p_2026_09 | 0 bytes    | FOR VALUES FROM ('2026-09-01 00:00:00+01') TO ('2026-10-01 00:00:00+01')
+ rental_p_2026_10 | 0 bytes    | FOR VALUES FROM ('2026-10-01 00:00:00+01') TO ('2026-11-01 00:00:00+01')
+ rental_p_2026_11 | 8192 bytes | FOR VALUES FROM ('2026-11-01 00:00:00+01') TO ('2026-12-01 00:00:00+01')
+ rental_p_2026_12 | 8192 bytes | FOR VALUES FROM ('2026-12-01 00:00:00+01') TO ('2027-01-01 00:00:00+01')
+ rental_p_2027_01 | 0 bytes    | FOR VALUES FROM ('2027-01-01 00:00:00+01') TO ('2027-02-01 00:00:00+01')
+ rental_p_2027_02 | 0 bytes    | FOR VALUES FROM ('2027-02-01 00:00:00+01') TO ('2027-03-01 00:00:00+01')
+ rental_p_2027_03 | 0 bytes    | FOR VALUES FROM ('2027-03-01 00:00:00+01') TO ('2027-04-01 00:00:00+01')
+ rental_p_2027_04 | 0 bytes    | FOR VALUES FROM ('2027-04-01 00:00:00+01') TO ('2027-05-01 00:00:00+01')
+ rental_p_2027_05 | 0 bytes    | FOR VALUES FROM ('2027-05-01 00:00:00+01') TO ('2027-06-01 00:00:00+01')
+ rental_p_default | 0 bytes    | DEFAULT
+(20 rows)
+
+psql:partition_setup.sql:109: NOTICE:  Inserted rental_id=1 into rental_p with pickup_time=2026-12-06 00:00:00+01
+DO
+ANALYZE
+ANALYZE
+    partition     | rows 
+------------------+------
+ rental_p_2025_11 | 3034
+ rental_p_2025_12 | 3472
+ rental_p_2026_01 | 1773
+ rental_p_2026_02 |  966
+ rental_p_2026_03 |  578
+ rental_p_2026_04 |  222
+ rental_p_2026_05 |   36
+ rental_p_2026_06 |    8
+ rental_p_2026_11 |    1
+ rental_p_2026_12 |    2
+(10 rows)
+
+ rows_in_default_partition_must_be_0 
+-------------------------------------
+                                   0
+(1 row)
+
+                             QUERY PLAN                             
+--------------------------------------------------------------------
+ Aggregate
+   ->  Append
+         Subplans Removed: 11
+         ->  Seq Scan on rental_p_2026_10 rental_p_1
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2026_11 rental_p_2
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2026_12 rental_p_3
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_01 rental_p_4
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_02 rental_p_5
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_03 rental_p_6
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_04 rental_p_7
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_05 rental_p_8
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_default rental_p_9
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+(21 rows)
+
+>>> screenshot: only the relevant partitions are scanned (Partition pruning).
+--- UNPARTITIONED rental, last month ---
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Aggregate (actual rows=1 loops=1)
+   ->  Index Only Scan using idx_rental_pickup_time on rental (actual rows=2 loops=1)
+         Index Cond: (pickup_time >= (now() - '1 mon'::interval))
+         Heap Fetches: 2
+ Planning Time: 0.550 ms
+ Execution Time: 0.026 ms
+(6 rows)
+
+--- PARTITIONED rental_p, last month ---
+                                 QUERY PLAN                                  
+-----------------------------------------------------------------------------
+ Aggregate (actual rows=1 loops=1)
+   ->  Append (actual rows=3 loops=1)
+         Subplans Removed: 11
+         ->  Seq Scan on rental_p_2026_10 rental_p_1 (actual rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2026_11 rental_p_2 (actual rows=1 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2026_12 rental_p_3 (actual rows=2 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_01 rental_p_4 (actual rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_02 rental_p_5 (actual rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_03 rental_p_6 (actual rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_04 rental_p_7 (actual rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_2027_05 rental_p_8 (actual rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+         ->  Seq Scan on rental_p_default rental_p_9 (actual rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '1 mon'::interval))
+ Planning Time: 2.133 ms
+ Execution Time: 0.055 ms
+(23 rows)
+
+                                                            QUERY PLAN                                                            
+----------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=337.77..337.78 rows=1 width=8) (actual time=0.022..0.024 rows=1 loops=1)
+   ->  Append  (cost=0.00..337.72 rows=21 width=0) (actual time=0.009..0.021 rows=3 loops=1)
+         Subplans Removed: 10
+         ->  Seq Scan on rental_p_2026_09 rental_p_1  (cost=0.00..0.00 rows=1 width=0) (actual time=0.003..0.003 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2026_10 rental_p_2  (cost=0.00..0.00 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2026_11 rental_p_3  (cost=0.00..1.02 rows=1 width=0) (actual time=0.005..0.005 rows=1 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2026_12 rental_p_4  (cost=0.00..1.03 rows=2 width=0) (actual time=0.002..0.003 rows=2 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2027_01 rental_p_5  (cost=0.00..0.00 rows=1 width=0) (actual time=0.002..0.002 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2027_02 rental_p_6  (cost=0.00..0.00 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2027_03 rental_p_7  (cost=0.00..0.00 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2027_04 rental_p_8  (cost=0.00..0.00 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_2027_05 rental_p_9  (cost=0.00..0.00 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+         ->  Seq Scan on rental_p_default rental_p_10  (cost=0.00..0.00 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=1)
+               Filter: (pickup_time >= (now() - '2 mons'::interval))
+ Planning Time: 0.601 ms
+ Execution Time: 0.054 ms
+(25 rows)
+
+>>> screenshot: Subplans Removed = N (pruned partitions).
+                                                                  Partitioned table "public.rental_p"
+      Column      |           Type           | Collation | Nullable |                   Default                   | Storage  | Compression | Stats target | Description 
+------------------+--------------------------+-----------+----------+---------------------------------------------+----------+-------------+--------------+-------------
+ rental_id        | bigint                   |           | not null | nextval('rental_p_rental_id_seq'::regclass) | plain    |             |              | 
+ car_id           | bigint                   |           | not null |                                             | plain    |             |              | 
+ customer_id      | bigint                   |           | not null |                                             | plain    |             |              | 
+ pickup_branch_id | bigint                   |           | not null |                                             | plain    |             |              | 
+ return_branch_id | bigint                   |           | not null |                                             | plain    |             |              | 
+ pickup_time      | timestamp with time zone |           | not null |                                             | plain    |             |              | 
+ return_time      | timestamp with time zone |           | not null |                                             | plain    |             |              | 
+ start_mileage    | integer                  |           | not null |                                             | plain    |             |              | 
+ end_mileage      | integer                  |           | not null |                                             | plain    |             |              | 
+ status           | text                     |           | not null | 'booked'::text                              | extended |             |              | 
+ rental_range     | tstzrange                |           |          |                                             | extended |             |              | 
+Partition key: RANGE (pickup_time)
+Check constraints:
+    "rental_p_status_check" CHECK (status = ANY (ARRAY['booked'::text, 'active'::text, 'returned'::text, 'cancelled'::text]))
+    "rp_chk_mileage_monotonic" CHECK (end_mileage >= start_mileage)
+    "rp_chk_return_after_pickup" CHECK (return_time > pickup_time)
+Triggers:
+    trg_set_rental_range_p BEFORE INSERT OR UPDATE OF pickup_time, return_time ON rental_p FOR EACH ROW EXECUTE FUNCTION fn_set_rental_range_p()
+Partitions: rental_p_2025_11 FOR VALUES FROM ('2025-11-01 00:00:00+01') TO ('2025-12-01 00:00:00+01'),
+            rental_p_2025_12 FOR VALUES FROM ('2025-12-01 00:00:00+01') TO ('2026-01-01 00:00:00+01'),
+            rental_p_2026_01 FOR VALUES FROM ('2026-01-01 00:00:00+01') TO ('2026-02-01 00:00:00+01'),
+            rental_p_2026_02 FOR VALUES FROM ('2026-02-01 00:00:00+01') TO ('2026-03-01 00:00:00+01'),
+            rental_p_2026_03 FOR VALUES FROM ('2026-03-01 00:00:00+01') TO ('2026-04-01 00:00:00+01'),
+            rental_p_2026_04 FOR VALUES FROM ('2026-04-01 00:00:00+01') TO ('2026-05-01 00:00:00+01'),
+            rental_p_2026_05 FOR VALUES FROM ('2026-05-01 00:00:00+01') TO ('2026-06-01 00:00:00+01'),
+            rental_p_2026_06 FOR VALUES FROM ('2026-06-01 00:00:00+01') TO ('2026-07-01 00:00:00+01'),
+            rental_p_2026_07 FOR VALUES FROM ('2026-07-01 00:00:00+01') TO ('2026-08-01 00:00:00+01'),
+            rental_p_2026_08 FOR VALUES FROM ('2026-08-01 00:00:00+01') TO ('2026-09-01 00:00:00+01'),
+            rental_p_2026_09 FOR VALUES FROM ('2026-09-01 00:00:00+01') TO ('2026-10-01 00:00:00+01'),
+            rental_p_2026_10 FOR VALUES FROM ('2026-10-01 00:00:00+01') TO ('2026-11-01 00:00:00+01'),
+            rental_p_2026_11 FOR VALUES FROM ('2026-11-01 00:00:00+01') TO ('2026-12-01 00:00:00+01'),
+            rental_p_2026_12 FOR VALUES FROM ('2026-12-01 00:00:00+01') TO ('2027-01-01 00:00:00+01'),
+            rental_p_2027_01 FOR VALUES FROM ('2027-01-01 00:00:00+01') TO ('2027-02-01 00:00:00+01'),
+            rental_p_2027_02 FOR VALUES FROM ('2027-02-01 00:00:00+01') TO ('2027-03-01 00:00:00+01'),
+            rental_p_2027_03 FOR VALUES FROM ('2027-03-01 00:00:00+01') TO ('2027-04-01 00:00:00+01'),
+            rental_p_2027_04 FOR VALUES FROM ('2027-04-01 00:00:00+01') TO ('2027-05-01 00:00:00+01'),
+            rental_p_2027_05 FOR VALUES FROM ('2027-05-01 00:00:00+01') TO ('2027-06-01 00:00:00+01'),
+            rental_p_default DEFAULT
+
+
+==> [2/2] Streaming replica (replica_demo.sh: one script, real output)
+==> [1/6] Replication access on the primary (hba line at the TOP, only once)
+==> [2/6] Fresh base backup into /var/lib/postgresql/16/replica
+==> [3/6] Replica config (Ubuntu keeps config in /etc, so write our own)
+
+==> [4/6] Who is who
+primary port 5432  pg_is_in_recovery = f
+replica port 5433  pg_is_in_recovery = t
+
+==> [5/6] Write on the REPLICA must be rejected:
+ERROR:  cannot execute INSERT in a read-only transaction
+ERROR:  cannot execute CREATE TABLE in a read-only transaction
+
+==> [6/6] Write on the PRIMARY must arrive on the REPLICA:
+CREATE TABLE
+INSERT 0 1
+primary rows: 1
+replica rows: 1
+replica last row: hello from primary at 13:39:17.051745
+replication lag (replica): 00:00:02.162094
+pg_stat_replication (primary):
+walreceiver | streaming | async
+RESULT: replica in recovery, rejects writes, and received the primary's new row.
+
+==> Cloud architecture: read cloud_architecture.md (NDPA 2023, CAP, sync vs async, December rush).
+==> Portfolio 5 done. Evidence: p5_output.log and replication_output.log

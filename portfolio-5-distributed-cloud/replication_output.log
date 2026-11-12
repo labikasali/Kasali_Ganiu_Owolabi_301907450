@@ -1,0 +1,22 @@
+==> [1/6] Replication access on the primary (hba line at the TOP, only once)
+==> [2/6] Fresh base backup into /var/lib/postgresql/16/replica
+==> [3/6] Replica config (Ubuntu keeps config in /etc, so write our own)
+
+==> [4/6] Who is who
+primary port 5432  pg_is_in_recovery = f
+replica port 5433  pg_is_in_recovery = t
+
+==> [5/6] Write on the REPLICA must be rejected:
+ERROR:  cannot execute INSERT in a read-only transaction
+ERROR:  cannot execute CREATE TABLE in a read-only transaction
+
+==> [6/6] Write on the PRIMARY must arrive on the REPLICA:
+CREATE TABLE
+INSERT 0 1
+primary rows: 1
+replica rows: 1
+replica last row: hello from primary at 13:39:17.051745
+replication lag (replica): 00:00:02.162094
+pg_stat_replication (primary):
+walreceiver | streaming | async
+RESULT: replica in recovery, rejects writes, and received the primary's new row.
