@@ -1,0 +1,42 @@
+
+=== PART 1: BUG - check-then-insert with no protection (READ COMMITTED) ===
+A: is car 3 free? -> True
+B: is car 3 free? -> True
+B: inserted booking for customer 2 and COMMITTED
+A: inserted booking for customer 1 and COMMITTED
+RESULT: 2 bookings for the same car and window -> DOUBLE BOOKING (bug reproduced)
+
+=== PART 2: FIX 1 - EXCLUDE constraint on the real rental table ===
+A: inserted rental 52126 for car 1 (not committed yet)
+B: is waiting for A (thread alive = True)
+A: COMMIT
+B: REJECTED with SQLSTATE 23P01 (exclusion_violation) - conflicting key value violates exclusion constraint "excl_no_overlapping_rental"
+
+=== PART 3: FIX 2 - SELECT ... FOR UPDATE on the car row (serialises the check) ===
+A: locked car 3 (FOR UPDATE)
+A: is car 3 free? -> True
+A: inserted booking (not committed yet)
+B: BLOCKED waiting for the car lock (thread alive = True)
+A: COMMIT (lock released)
+B: after waiting, is car 3 free? -> False  -> B refuses to book
+RESULT: 1 booking(s) in the table -> correct, no double booking
+
+=== PART 4: FIX 3 - SERIALIZABLE isolation (second committer is aborted) ===
+A: is car 3 free? -> True
+B: is car 3 free? -> True
+A: COMMIT ok
+B: COMMIT FAILED SQLSTATE 40001 - could not serialize access due to read/write dependencies among transactions
+RESULT: 1 booking(s) stored; the application retries B and sees the car is taken
+
+=== PART 5: READ COMMITTED vs REPEATABLE READ (non-repeatable read) ===
+READ COMMITTED: A reads 0 row(s); B inserts + commits; A reads again -> 1 row(s)  (non-repeatable/phantom read)
+REPEATABLE READ: A reads 0 row(s); B inserts + commits; A reads again -> 0 row(s)  (same snapshot)
+
+=== PART 6: DEADLOCK - A locks car 1 then 2, B locks car 2 then 1 ===
+A: locked car 1
+B: locked car 2
+A: DEADLOCK DETECTED SQLSTATE 40P01 - deadlock detected  -> A is the victim and is rolled back
+B: got the second lock after the victim released its lock -> COMMIT
+FIX: always lock rows in a fixed order (lowest car_id first) so a cycle cannot form.
+
+All 6 demos finished.

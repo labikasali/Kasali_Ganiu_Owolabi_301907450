@@ -1,0 +1,126 @@
+==> [1/3] Create book_car() function + v_recent_bookings view
+psql:book_car.sql:23: NOTICE:  function book_car(pg_catalog.int8,pg_catalog.int8,pg_catalog.int8,pg_catalog.int8,timestamptz,timestamptz,text) does not exist, skipping
+DROP FUNCTION
+CREATE FUNCTION
+CREATE VIEW
+==> [2/3] commit_rollback_demo.sql (COMMIT / ROLLBACK / SAVEPOINT)
+================ COMMIT case ================
+BEGIN
+ rental_id 
+-----------
+     52124
+(1 row)
+
+ rental_id | plate_number |  customer  |          pickup_time          |          return_time          |  status  |  deposit  | channel  
+-----------+--------------+------------+-------------------------------+-------------------------------+----------+-----------+----------
+     52124 | LAG-003CC    | Mohammed   | 2026-11-26 13:38:54.423753+01 | 2026-11-28 13:38:54.423753+01 | booked   | 250000.00 | card
+     52123 | LAG-007GG    | Lawal      | 2026-12-03 14:37:59.859394+01 | 2026-12-09 14:37:59.859394+01 | booked   |           | 
+     52117 | LAG-556JD    | Ibrahim    | 2026-01-30 05:30:00+01        | 2026-02-03 04:30:00+01        | returned |  50000.00 | transfer
+     52116 | LAG-514TJ    | Adebowale  | 2026-01-19 20:00:00+01        | 2026-01-20 19:00:00+01        | returned | 120000.00 | cash
+     52115 | LAG-412VD    | Musa       | 2026-02-27 09:45:00+01        | 2026-03-02 07:45:00+01        | returned | 100000.00 | card
+     52114 | LAG-001AA    | Ojo        | 2025-11-15 03:15:00+01        | 2025-11-16 02:15:00+01        | returned |  50000.00 | card
+     52113 | LAG-257WQ    | Danjuma    | 2025-12-10 12:30:00+01        | 2025-12-18 12:30:00+01        | returned | 100000.00 | cash
+     52112 | LAG-056DH    | Adewale    | 2025-12-27 07:15:00+01        | 2025-12-28 07:15:00+01        | returned |  50000.00 | cash
+     52111 | ABJ-575CW    | Olanrewaju | 2025-11-25 10:45:00+01        | 2025-11-27 09:45:00+01        | returned | 110000.00 | transfer
+     52110 | LAG-238DV    | Suleiman   | 2026-03-26 03:15:00+01        | 2026-03-29 01:15:00+01        | returned | 250000.00 | transfer
+     52109 | LAG-559MG    | Adewale    | 2025-11-22 18:30:00+01        | 2025-11-24 17:30:00+01        | returned | 120000.00 | transfer
+     52108 | LAG-198PF    | Idris      | 2026-03-15 08:15:00+01        | 2026-03-17 08:15:00+01        | returned | 250000.00 | cash
+     52107 | LAG-374JN    | Adewale    | 2025-12-09 16:30:00+01        | 2025-12-15 16:30:00+01        | returned | 120000.00 | card
+     52106 | LAG-423GO    | Ibrahim    | 2025-12-10 09:15:00+01        | 2025-12-11 08:15:00+01        | returned | 250000.00 | transfer
+     52105 | LAG-284XT    | Okoro      | 2026-01-03 13:45:00+01        | 2026-01-05 11:45:00+01        | returned | 120000.00 | transfer
+     52104 | LAG-022VV    | Okoro      | 2026-03-18 22:00:00+01        | 2026-03-21 22:00:00+01        | returned | 100000.00 | card
+     52103 | LAG-101WE    | Adebayo    | 2026-01-18 02:30:00+01        | 2026-01-24 00:30:00+01        | returned |  50000.00 | card
+     52102 | LAG-469AM    | Adeyemi    | 2025-12-04 11:30:00+01        | 2025-12-06 10:30:00+01        | returned | 120000.00 | cash
+     52101 | ABJ-385UA    | Eze        | 2026-02-07 04:15:00+01        | 2026-02-15 04:15:00+01        | returned | 110000.00 | transfer
+     52100 | LAG-553GA    | Adebayo    | 2026-03-09 01:30:00+01        | 2026-03-11 00:30:00+01        | returned | 250000.00 | card
+(20 rows)
+
+COMMIT
+[OK] COMMIT — booking + deposit persisted.
+
+================ ROLLBACK case (deposit failure cancels the booking) ================
+BEGIN
+Count before:
+ rentals_before 
+----------------
+              1
+(1 row)
+
+psql:commit_rollback_demo.sql:51: NOTICE:  book_car returned rental_id=52125 — but we will now force a deposit failure
+psql:commit_rollback_demo.sql:51: ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+DETAIL:  Failing row contains (133791, 52125, -500.00, refund, 2026-11-12 13:38:54.439982+01, card).
+CONTEXT:  SQL statement "INSERT INTO payment (rental_id, amount, payment_type, paid_at, channel)
+    VALUES (rid, -500, 'refund', now(), 'card')"
+PL/pgSQL function inline_code_block line 15 at SQL statement
+[EXPECTED] ERROR: new row for relation "payment" violates check "payment_amount_check"
+ROLLBACK
+Count after ROLLBACK:
+ rentals_after 
+---------------
+             0
+(1 row)
+
+[OK] ROLLBACK — neither the rental nor the deposit survived.
+
+================ Savepoint demo (partial rollback) ================
+BEGIN
+Inserting a maintenance row, then attempting a bad one…
+INSERT 0 1
+SAVEPOINT
+psql:commit_rollback_demo.sql:67: ERROR:  new row for relation "maintenance" violates check constraint "chk_maint_end_after_start"
+DETAIL:  Failing row contains (23, 3, 2026-11-12 13:38:54.442539+01, 2026-11-12 13:38:54.442539+01, Bad row, 1000.00).
+[EXPECTED] ERROR on the second insert
+ROLLBACK
+After ROLLBACK TO sp1, the first insert survives:
+ maintenance_id | car_id |          start_time           |           end_time            |  description   |  cost   
+----------------+--------+-------------------------------+-------------------------------+----------------+---------
+             22 |      3 | 2026-12-22 13:38:54.442539+01 | 2026-12-23 13:38:54.442539+01 | Savepoint test | 5000.00
+(1 row)
+
+COMMIT
+[OK] Savepoint let us roll back only the failing statement.
+==> [3/3] Race condition, isolation levels and deadlock (two real sessions)
+
+=== PART 1: BUG - check-then-insert with no protection (READ COMMITTED) ===
+A: is car 3 free? -> True
+B: is car 3 free? -> True
+B: inserted booking for customer 2 and COMMITTED
+A: inserted booking for customer 1 and COMMITTED
+RESULT: 2 bookings for the same car and window -> DOUBLE BOOKING (bug reproduced)
+
+=== PART 2: FIX 1 - EXCLUDE constraint on the real rental table ===
+A: inserted rental 52126 for car 1 (not committed yet)
+B: is waiting for A (thread alive = True)
+A: COMMIT
+B: REJECTED with SQLSTATE 23P01 (exclusion_violation) - conflicting key value violates exclusion constraint "excl_no_overlapping_rental"
+
+=== PART 3: FIX 2 - SELECT ... FOR UPDATE on the car row (serialises the check) ===
+A: locked car 3 (FOR UPDATE)
+A: is car 3 free? -> True
+A: inserted booking (not committed yet)
+B: BLOCKED waiting for the car lock (thread alive = True)
+A: COMMIT (lock released)
+B: after waiting, is car 3 free? -> False  -> B refuses to book
+RESULT: 1 booking(s) in the table -> correct, no double booking
+
+=== PART 4: FIX 3 - SERIALIZABLE isolation (second committer is aborted) ===
+A: is car 3 free? -> True
+B: is car 3 free? -> True
+A: COMMIT ok
+B: COMMIT FAILED SQLSTATE 40001 - could not serialize access due to read/write dependencies among transactions
+RESULT: 1 booking(s) stored; the application retries B and sees the car is taken
+
+=== PART 5: READ COMMITTED vs REPEATABLE READ (non-repeatable read) ===
+READ COMMITTED: A reads 0 row(s); B inserts + commits; A reads again -> 1 row(s)  (non-repeatable/phantom read)
+REPEATABLE READ: A reads 0 row(s); B inserts + commits; A reads again -> 0 row(s)  (same snapshot)
+
+=== PART 6: DEADLOCK - A locks car 1 then 2, B locks car 2 then 1 ===
+A: locked car 1
+B: locked car 2
+A: DEADLOCK DETECTED SQLSTATE 40P01 - deadlock detected  -> A is the victim and is rolled back
+B: got the second lock after the victim released its lock -> COMMIT
+FIX: always lock rows in a fixed order (lowest car_id first) so a cycle cannot form.
+
+All 6 demos finished.
+
+==> Portfolio 3 done. Evidence: race_demos_output.log and p3_output.log
