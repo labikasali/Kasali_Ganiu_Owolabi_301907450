@@ -1,0 +1,644 @@
+==> [1/5] Create collections with JSON Schema validators
+Time-series collection not supported (driveeasy.gps_trip_logs: 'timeseries' is not allowed with 'validator'); falling back to regular collection.
+--- collection info ---
+  collection: gps_trip_logs
+  collection: vehicle_inspections
+vehicle_inspections count: 0
+gps_trip_logs        count: 0
+--- vehicle_inspections validator ---
+{
+  name: 'vehicle_inspections',
+  type: 'collection',
+  options: {
+    validator: {
+      '$jsonSchema': {
+        bsonType: 'object',
+        required: [
+          'inspection_id',
+          'rental_id',
+          'car_id',
+          'car_category',
+          'inspection_type',
+          'inspector_id',
+          'inspector_name',
+          'performed_at',
+          'branch_code',
+          'checklist'
+        ],
+        properties: {
+          inspection_id: {
+            bsonType: [
+              'long',
+              'int',
+              'double'
+            ],
+            description: 'unique id'
+          },
+          rental_id: {
+            bsonType: [
+              'long',
+              'int',
+              'double'
+            ]
+          },
+          car_id: {
+            bsonType: [
+              'long',
+              'int',
+              'double'
+            ]
+          },
+          car_category: {
+            enum: [
+              'Economy',
+              'SUV',
+              'Luxury',
+              'Mini-bus',
+              'Van'
+            ]
+          },
+          inspection_type: {
+            enum: [
+              'pickup',
+              'return'
+            ]
+          },
+          inspector_id: {
+            bsonType: [
+              'long',
+              'int',
+              'double'
+            ]
+          },
+          inspector_name: {
+            bsonType: 'string'
+          },
+          performed_at: {
+            bsonType: 'date'
+          },
+          branch_code: {
+            enum: [
+              'IKE',
+              'LKK',
+              'VTC',
+              'MMA',
+              'ABJ'
+            ]
+          },
+          odometer_km: {
+            bsonType: [
+              'int',
+              'long',
+              'double'
+            ],
+            minimum: 0
+          },
+          fuel_level_pct: {
+            bsonType: [
+              'int',
+              'long',
+              'double'
+            ],
+            minimum: 0,
+            maximum: 100
+          },
+          damage_marks: {
+            bsonType: 'array',
+            items: {
+              bsonType: 'object',
+              required: [
+                'area',
+                'severity',
+                'notes'
+              ],
+              properties: {
+                area: {
+                  enum: [
+                    'front_bumper',
+                    'rear_bumper',
+                    'left_door',
+                    'right_door',
+                    'bonnet',
+                    'boot',
+                    'roof',
+                    'windscreen',
+                    'tyre',
+                    'interior'
+                  ]
+                },
+                severity: {
+                  enum: [
+                    'none',
+                    'minor',
+                    'moderate',
+                    'major'
+                  ]
+                },
+                notes: {
+                  bsonType: 'string'
+                },
+                photo_url: {
+                  bsonType: 'string'
+                }
+              }
+            }
+          },
+          checklist: {
+            bsonType: 'object',
+            required: [
+              'tyres_ok',
+              'lights_ok',
+              'spare_tyre_ok'
+            ],
+            properties: {
+              tyres_ok: {
+                bsonType: 'bool'
+              },
+              lights_ok: {
+                bsonType: 'bool'
+              },
+              spare_tyre_ok: {
+                bsonType: 'bool'
+              },
+              ac_ok: {
+                bsonType: 'bool'
+              },
+              sunroof_ok: {
+                bsonType: 'bool'
+              },
+              child_seat: {
+                bsonType: 'bool'
+              },
+              cargo_space_ok: {
+                bsonType: 'bool'
+              },
+              registration_ok: {
+                bsonType: 'bool'
+              },
+              insurance_ok: {
+                bsonType: 'bool'
+              },
+              cleaned: {
+                bsonType: 'bool'
+              },
+              refuelled: {
+                bsonType: 'bool'
+              }
+            }
+          },
+          inspector_notes: {
+            bsonType: 'string'
+          }
+        }
+      }
+    },
+    validationLevel: 'strict',
+    validationAction: 'error'
+  },
+  info: {
+    readOnly: false,
+    uuid: UUID('fc25073e-3323-45f6-87aa-223b03fc398e')
+  },
+  idIndex: {
+    v: 2,
+    key: {
+      _id: 1
+    },
+    name: '_id_'
+  }
+}
+--- gps_trip_logs validator ---
+{
+  name: 'gps_trip_logs',
+  type: 'collection',
+  options: {
+    validator: {
+      '$jsonSchema': {
+        bsonType: 'object',
+        required: [
+          'ts',
+          'rental_id',
+          'car_id',
+          'lat',
+          'lng',
+          'speed_kph'
+        ],
+        properties: {
+          ts: {
+            bsonType: 'date'
+          },
+          rental_id: {
+            bsonType: [
+              'long',
+              'int',
+              'double'
+            ]
+          },
+          car_id: {
+            bsonType: [
+              'long',
+              'int',
+              'double'
+            ]
+          },
+          lat: {
+            bsonType: [
+              'double',
+              'int',
+              'long'
+            ]
+          },
+          lng: {
+            bsonType: [
+              'double',
+              'int',
+              'long'
+            ]
+          },
+          speed_kph: {
+            bsonType: [
+              'double',
+              'int',
+              'long'
+            ]
+          },
+          odometer_km: {
+            bsonType: [
+              'double',
+              'int',
+              'long'
+            ]
+          },
+          event: {
+            enum: [
+              'ignition_on',
+              'moving',
+              'idle',
+              'ignition_off'
+            ]
+          }
+        }
+      }
+    }
+  },
+  info: {
+    readOnly: false,
+    uuid: UUID('4a7fa2e0-899b-4e02-bf9e-6e469c64e8cb')
+  },
+  idIndex: {
+    v: 2,
+    key: {
+      _id: 1
+    },
+    name: '_id_'
+  }
+}
+==> [2/5] Seed 42,000 vehicle_inspection documents (this takes ~30-60s)
+Inserted 10000 / 42000 inspections — elapsed 0.5s
+Inserted 20000 / 42000 inspections — elapsed 0.8s
+Inserted 30000 / 42000 inspections — elapsed 1.1s
+Inserted 40000 / 42000 inspections — elapsed 1.4s
+Done. vehicle_inspections count: 42000
+Pickups: 21000
+Returns: 21000
+With damage: 5085
+==> [3/5] Seed ~150,000 GPS trip-log documents (this takes ~30-60s)
+Done. gps_trip_logs count: 150000
+==> [4/5] Run aggregations (damage per category, distance per rental, repeat damage)
+==================================================================
+A. Damage per car category (count of inspections with ≥1 damage mark)
+==================================================================
+[
+  {
+    inspections_with_damage: 1060,
+    major_count: 51,
+    category: 'Mini-bus',
+    distinct_cars: 40
+  },
+  {
+    inspections_with_damage: 1021,
+    major_count: 31,
+    category: 'Economy',
+    distinct_cars: 40
+  },
+  {
+    inspections_with_damage: 1012,
+    major_count: 39,
+    category: 'Luxury',
+    distinct_cars: 40
+  },
+  {
+    inspections_with_damage: 1001,
+    major_count: 54,
+    category: 'Van',
+    distinct_cars: 40
+  },
+  {
+    inspections_with_damage: 991,
+    major_count: 48,
+    category: 'SUV',
+    distinct_cars: 40
+  }
+]
+
+==================================================================
+B. Distance per rental — derived from GPS trip logs
+    (max odometer - min odometer for each rental_id)
+==================================================================
+[
+  {
+    car_id: 135,
+    points: 30,
+    rental_id: 2534,
+    distance_km: 28.87,
+    max_speed_kph: 77.1
+  },
+  {
+    car_id: 56,
+    points: 30,
+    rental_id: 4055,
+    distance_km: 28.48,
+    max_speed_kph: 78.5
+  },
+  {
+    car_id: 181,
+    points: 30,
+    rental_id: 4580,
+    distance_km: 28.44,
+    max_speed_kph: 77.5
+  },
+  {
+    car_id: 92,
+    points: 30,
+    rental_id: 4091,
+    distance_km: 28.43,
+    max_speed_kph: 79.8
+  },
+  {
+    car_id: 79,
+    points: 30,
+    rental_id: 1278,
+    distance_km: 28.14,
+    max_speed_kph: 80
+  },
+  {
+    car_id: 23,
+    points: 30,
+    rental_id: 822,
+    distance_km: 28.11,
+    max_speed_kph: 78.7
+  },
+  {
+    car_id: 101,
+    points: 30,
+    rental_id: 500,
+    distance_km: 28.08,
+    max_speed_kph: 79.8
+  },
+  {
+    car_id: 92,
+    points: 30,
+    rental_id: 3491,
+    distance_km: 27.91,
+    max_speed_kph: 78.8
+  },
+  {
+    car_id: 184,
+    points: 30,
+    rental_id: 3983,
+    distance_km: 27.89,
+    max_speed_kph: 78.7
+  },
+  {
+    car_id: 20,
+    points: 30,
+    rental_id: 4819,
+    distance_km: 27.88,
+    max_speed_kph: 79.9
+  },
+  {
+    car_id: 133,
+    points: 30,
+    rental_id: 2332,
+    distance_km: 27.81,
+    max_speed_kph: 79.6
+  },
+  {
+    car_id: 159,
+    points: 30,
+    rental_id: 3558,
+    distance_km: 27.78,
+    max_speed_kph: 79.9
+  },
+  {
+    car_id: 19,
+    points: 30,
+    rental_id: 1018,
+    distance_km: 27.59,
+    max_speed_kph: 78.9
+  },
+  {
+    car_id: 162,
+    points: 30,
+    rental_id: 2561,
+    distance_km: 27.58,
+    max_speed_kph: 78.5
+  },
+  {
+    car_id: 107,
+    points: 30,
+    rental_id: 4106,
+    distance_km: 27.56,
+    max_speed_kph: 78.8
+  }
+]
+
+==================================================================
+C. Cars with REPEAT damage — ≥3 separate inspections with damage marks
+==================================================================
+[
+  {
+    category: 'Mini-bus',
+    damage_inspections: 39,
+    car_id: 39,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-06T13:45:36.280Z'),
+    last_damage_at: ISODate('2026-11-19T17:23:28.571Z')
+  },
+  {
+    category: 'Luxury',
+    damage_inspections: 36,
+    car_id: 183,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-07T09:52:58.792Z'),
+    last_damage_at: ISODate('2026-11-17T10:07:12.447Z')
+  },
+  {
+    category: 'Mini-bus',
+    damage_inspections: 36,
+    car_id: 124,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-05T08:59:56.281Z'),
+    last_damage_at: ISODate('2026-11-11T12:02:25.251Z')
+  },
+  {
+    category: 'SUV',
+    damage_inspections: 36,
+    car_id: 77,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-06T13:00:42.810Z'),
+    last_damage_at: ISODate('2026-11-19T05:00:28.299Z')
+  },
+  {
+    category: 'Luxury',
+    damage_inspections: 35,
+    car_id: 48,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T15:20:21.340Z'),
+    last_damage_at: ISODate('2026-11-11T09:03:41.304Z')
+  },
+  {
+    category: 'Mini-bus',
+    damage_inspections: 35,
+    car_id: 199,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-07T10:52:22.229Z'),
+    last_damage_at: ISODate('2026-11-19T11:10:16.306Z')
+  },
+  {
+    category: 'Mini-bus',
+    damage_inspections: 34,
+    car_id: 4,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T22:13:19.603Z'),
+    last_damage_at: ISODate('2026-11-11T10:11:32.762Z')
+  },
+  {
+    category: 'Van',
+    damage_inspections: 34,
+    car_id: 60,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T15:41:54.969Z'),
+    last_damage_at: ISODate('2026-11-11T12:13:29.213Z')
+  },
+  {
+    category: 'Van',
+    damage_inspections: 34,
+    car_id: 200,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T12:45:42.031Z'),
+    last_damage_at: ISODate('2026-11-11T12:29:05.702Z')
+  },
+  {
+    category: 'Mini-bus',
+    damage_inspections: 33,
+    car_id: 144,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T13:56:09.643Z'),
+    last_damage_at: ISODate('2026-11-11T11:20:52.426Z')
+  },
+  {
+    category: 'Van',
+    damage_inspections: 33,
+    car_id: 120,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T13:45:30.127Z'),
+    last_damage_at: ISODate('2026-11-11T10:20:32.155Z')
+  },
+  {
+    category: 'Luxury',
+    damage_inspections: 33,
+    car_id: 98,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T17:55:49.549Z'),
+    last_damage_at: ISODate('2026-11-11T09:10:57.175Z')
+  },
+  {
+    category: 'Mini-bus',
+    damage_inspections: 32,
+    car_id: 104,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T17:10:30.016Z'),
+    last_damage_at: ISODate('2026-11-11T04:40:05.174Z')
+  },
+  {
+    category: 'Economy',
+    damage_inspections: 32,
+    car_id: 36,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-04T16:49:41.775Z'),
+    last_damage_at: ISODate('2026-11-11T10:28:34.313Z')
+  },
+  {
+    category: 'Mini-bus',
+    damage_inspections: 32,
+    car_id: 169,
+    distinct_inspectors: 3,
+    first_damage_at: ISODate('2026-11-05T16:25:18.894Z'),
+    last_damage_at: ISODate('2026-11-18T08:39:49.482Z')
+  }
+]
+
+==================================================================
+BONUS — Damage severity distribution (across all damage_marks)
+==================================================================
+[
+  {
+    _id: 'minor',
+    count: 4792
+  },
+  {
+    _id: 'moderate',
+    count: 1896
+  },
+  {
+    _id: 'major',
+    count: 223
+  }
+]
+
+Done. Copy the four JSON arrays above into your screenshots/evidence.
+==> [5/5] COLLSCAN → IXSCAN index demo (before vs after)
+==================================================================
+Query: find all inspections on car_id=42 of type "return".
+Run twice — before and after the index.
+==================================================================
+Target: {"car_id":3,"inspection_type":"return"}
+
+--- BEFORE index (COLLSCAN expected) ---
+{
+  stage: 'COLLSCAN',
+  indexName: null,
+  totalDocsExamined: 42000,
+  totalKeysExamined: 0,
+  nReturned: 210,
+  executionTimeMs: 13
+}
+
+--- CREATE index { car_id: 1, inspection_type: 1 } ---
+
+--- AFTER index (IXSCAN expected) ---
+{
+  stage: 'IXSCAN',
+  indexName: 'idx_car_type',
+  totalDocsExamined: 210,
+  totalKeysExamined: 210,
+  nReturned: 210,
+  executionTimeMs: 2
+}
+
+==================================================================
+SUMMARY (real values from this run)
+  Stage              | Docs examined | Keys examined | Time ms | Returned
+  COLLSCAN (before)  | 42000 | 0 | 13 | 210
+  IXSCAN (after, idx_car_type) | 210 | 210 | 2 | 210
+==================================================================
+
+==> Portfolio 4 done. Screenshot:
+    • collection count after seeding (vehicle_inspections, gps_trip_logs)
+    • db.runCommand({listCollections:1}) showing the validator on vehicle_inspections
+    • the four aggregation outputs from aggregations.js
+    • indexes.js: COLLSCAN stage + totalDocsExamined BEFORE,
+      IXSCAN stage + totalKeysExamined + executionTimeMs AFTER
+
+    git add portfolio-4-nosql/ && git commit -m 'P4: MongoDB inspections + GPS + aggregations + index demo'
