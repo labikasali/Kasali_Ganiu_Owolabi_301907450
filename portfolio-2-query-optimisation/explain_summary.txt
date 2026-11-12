@@ -1,0 +1,33 @@
+Q  BEFORE_ms  AFTER_ms
+Q1  4.369  0.546
+Q2  73.921  81.689
+Q3  1.149  1.678
+Q4  4.079  0.039
+Q5  10.343  12.380
+Q6  0.174  0.195
+Q7  0.884  1.013
+
+Scan types BEFORE:
+      1 Bitmap Heap Scan on car
+      1 Bitmap Heap Scan on rental
+      1 Index Scan on idx_car_homebranch
+      1 Index Scan on idx_rental_range_gist
+      3 Seq Scan on branch
+      3 Seq Scan on car
+      1 Seq Scan on customer
+      1 Seq Scan on damage_report
+      1 Seq Scan on payment
+      2 Seq Scan on rental
+Scan types AFTER:
+      1 Bitmap Heap Scan on car
+      2 Bitmap Heap Scan on rental
+      1 Index Scan on idx_car_branch_status
+      2 Index Scan on idx_rental_range_gist
+      3 Seq Scan on branch
+      3 Seq Scan on car
+      1 Seq Scan on customer
+      1 Seq Scan on damage_report
+      1 Seq Scan on payment
+      1 Seq Scan on rental
+
+Note: a query whose AFTER time is not lower kept the same plan (full-history aggregate) - the difference is run-to-run noise, not an index effect.

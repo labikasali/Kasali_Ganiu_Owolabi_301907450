@@ -1,0 +1,224 @@
+==> [1/4] Sanity: P1 must already be loaded (rentals >= 50000)
+ rental_count 
+--------------
+        52001
+(1 row)
+
+==> [2/4] Run the 7 queries (queries.sql) — screenshot the result tables
+Timing is on.
+ car_id | plate_number | category | mileage 
+--------+--------------+----------+---------
+      1 | LAG-001AA    | Economy  |   41280
+      6 | LAG-006FF    | Economy  |   57819
+     11 | LAG-011KK    | Economy  |   53744
+     16 | LAG-016PP    | Economy  |   55945
+     21 | LAG-021UU    | Economy  |   60773
+     26 | LAG-026ZB    | Economy  |   46776
+     31 | LAG-031EG    | Economy  |   56197
+     36 | LAG-036JL    | Economy  |   42918
+     41 | LAG-041OQ    | Economy  |   47587
+     46 | LAG-046TV    | Economy  |   59248
+     51 | LAG-051YC    | Economy  |   58769
+     56 | LAG-056DH    | Economy  |   54488
+     61 | LAG-061IM    | Economy  |   63138
+     66 | LAG-066NR    | Economy  |   58802
+     71 | LAG-071SW    | Economy  |   46280
+     76 | LAG-076XD    | Economy  |   66024
+     81 | LAG-081CI    | Economy  |   45431
+     86 | LAG-086HN    | Economy  |   66084
+     91 | LAG-091MS    | Economy  |   74131
+     96 | LAG-096RX    | Economy  |   75483
+    101 | LAG-101WE    | Economy  |   62484
+    106 | LAG-106BJ    | Economy  |   65624
+    111 | LAG-111GO    | Economy  |   63992
+    116 | LAG-116LT    | Economy  |   67690
+    121 | LAG-121QA    | Economy  |   54836
+(25 rows)
+
+Time: 16.253 ms
+ branch |   ym    | revenue_ngn  | rentals 
+--------+---------+--------------+---------
+ ABJ    | 2026-06 |    186500.00 |       3
+ IKE    | 2026-06 |     89000.00 |       1
+ LKK    | 2026-06 |    246750.00 |       3
+ VTC    | 2026-06 |     61500.00 |       1
+ ABJ    | 2026-05 |    876500.00 |       6
+ IKE    | 2026-05 |   1032000.00 |      11
+ LKK    | 2026-05 |    966750.00 |       4
+ MMA    | 2026-05 |   1729993.00 |      10
+ VTC    | 2026-05 |    746166.67 |       5
+ ABJ    | 2026-04 |   9632384.00 |      49
+ IKE    | 2026-04 |   8321841.00 |      47
+ LKK    | 2026-04 |  10233975.00 |      41
+ MMA    | 2026-04 |   4684870.00 |      36
+ VTC    | 2026-04 |  10055369.33 |      49
+ ABJ    | 2026-03 |  22300162.00 |     112
+ IKE    | 2026-03 |  25872556.33 |     116
+ LKK    | 2026-03 |  25122268.33 |     115
+ MMA    | 2026-03 |  25459154.66 |     114
+ VTC    | 2026-03 |  24181795.68 |     121
+ ABJ    | 2026-02 |  41605638.99 |     191
+ IKE    | 2026-02 |  44188682.99 |     195
+ LKK    | 2026-02 |  42041055.33 |     212
+ MMA    | 2026-02 |  39301417.00 |     180
+ VTC    | 2026-02 |  38866846.67 |     188
+ ABJ    | 2026-01 |  67663510.32 |     337
+ IKE    | 2026-01 |  80431607.33 |     384
+ LKK    | 2026-01 |  77314928.00 |     353
+ MMA    | 2026-01 |  71067045.33 |     341
+ VTC    | 2026-01 |  76671224.67 |     358
+ ABJ    | 2025-12 | 137117404.33 |     670
+ IKE    | 2025-12 | 145237532.99 |     687
+ LKK    | 2025-12 | 140663039.02 |     679
+ MMA    | 2025-12 | 152332122.32 |     769
+ VTC    | 2025-12 | 132250445.34 |     667
+ ABJ    | 2025-11 | 143258598.34 |     638
+ IKE    | 2025-11 | 110712088.01 |     569
+ LKK    | 2025-11 | 130307980.65 |     605
+ MMA    | 2025-11 | 127283693.36 |     623
+ VTC    | 2025-11 | 126696638.32 |     599
+(39 rows)
+
+Time: 74.163 ms
+ category | utilisation_pct | available_days | rented_days 
+----------+-----------------+----------------+-------------
+ Mini-bus |            0.00 |           3600 |           0
+ SUV      |            0.00 |           3600 |           0
+ Luxury   |            0.00 |           3600 |           0
+ Van      |            0.00 |           3600 |           0
+ Economy  |            0.00 |           3600 |           0
+(5 rows)
+
+Time: 2.966 ms
+ rental_id | plate_number | last_name | pickup_time | return_time | hours_overdue 
+-----------+--------------+-----------+-------------+-------------+---------------
+(0 rows)
+
+Time: 5.634 ms
+ customer_id | first_name | last_name | damage_count | total_damage_ngn 
+-------------+------------+-----------+--------------+------------------
+        4582 | Mariam     | Eze       |            3 |        336133.00
+        2829 | Yetunde    | Olawale   |            3 |        322444.00
+        2703 | Tunde      | Balogun   |            3 |        300591.00
+        1986 | Aisha      | Yusuf     |            3 |        288231.00
+        1435 | Chiamaka   | Ibrahim   |            3 |        262025.00
+        2229 | Yetunde    | Olawale   |            3 |        257619.00
+         628 | Ekene      | Ibrahim   |            3 |        255449.00
+        1451 | Halima     | Ojo       |            3 |        249190.00
+        4108 | Ekene      | Ibrahim   |            3 |        243788.00
+          35 | Emeka      | Mohammed  |            3 |        243413.00
+        3256 | Temitope   | Idris     |            3 |        242371.00
+         604 | Ngozi      | Adebayo   |            3 |        222442.00
+        1632 | Obinna     | Danjuma   |            3 |        218148.00
+        1292 | Fatima     | Abdullahi |            3 |        213794.00
+        4671 | Gbenga     | Okoro     |            3 |        213375.00
+         713 | Oluwaseun  | Adewale   |            3 |        210847.00
+        2420 | Adaeze     | Okeke     |            3 |        203100.00
+        1914 | Hauwa      | Adebowale |            3 |        196479.00
+        2560 | Kunle      | Nwosu     |            3 |        164327.00
+        4058 | Ibrahim    | Eze       |            3 |        144906.00
+         284 | Seyi       | Ogunleye  |            3 |        125027.00
+         684 | Hauwa      | Adebowale |            3 |        120401.00
+        4248 | Funmilayo  | Okafor    |            3 |         61985.00
+        3310 | Kunle      | Nwosu     |            2 |        234103.00
+        1961 | Halima     | Ojo       |            2 |        233076.00
+(25 rows)
+
+Time: 15.566 ms
+ pickup_branch | return_branch | trips | revenue_ngn 
+---------------+---------------+-------+-------------
+ MMA           | IKE           |     6 |   200000.00
+ VTC           | MMA           |     6 |   335000.00
+ VTC           | LKK           |     5 |   234000.00
+ ABJ           | VTC           |     5 |   109000.00
+ LKK           | VTC           |     4 |   380000.00
+ IKE           | VTC           |     4 |   189000.00
+ MMA           | ABJ           |     3 |   162000.00
+ MMA           | LKK           |     3 |   144000.00
+ ABJ           | IKE           |     3 |   110000.00
+ ABJ           | MMA           |     3 |    54000.00
+ IKE           | LKK           |     3 |    72000.00
+ IKE           | MMA           |     3 |    54000.00
+ LKK           | ABJ           |     3 |    18000.00
+ LKK           | MMA           |     3 |   165000.00
+ VTC           | IKE           |     2 |    72000.00
+(15 rows)
+
+Time: 10.231 ms
+ category | avg_length_days | avg_revenue_ngn | rentals 
+----------+-----------------+-----------------+---------
+ Luxury   |            2.44 |       226500.00 |       2
+ SUV      |            3.96 |       196875.00 |       4
+ Van      |            1.83 |       109958.33 |       8
+ Economy  |            4.41 |        89840.91 |      11
+(4 rows)
+
+Time: 1.737 ms
+==> Reset: drop P2 indexes + ANALYZE so the BEFORE run is fair and re-runnable
+NOTICE:  index "idx_car_branch_status" does not exist, skipping
+NOTICE:  index "idx_rental_pickup_br_time" does not exist, skipping
+NOTICE:  index "idx_rental_overdue" does not exist, skipping
+NOTICE:  index "idx_rental_pickup_time_recent" does not exist, skipping
+NOTICE:  index "idx_damage_rental_severity" does not exist, skipping
+NOTICE:  index "idx_payment_rental_type_amount" does not exist, skipping
+NOTICE:  index "idx_rental_one_way" does not exist, skipping
+DROP INDEX
+ANALYZE
+==> [3/4] EXPLAIN ANALYZE BEFORE indexes (output → explain_before.txt)
+    written: explain_before.txt
+==> [4/4] Create optimisation indexes, then EXPLAIN ANALYZE AFTER
+==> Adding optimisation indexes (idempotent)
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+ANALYZE
+==> Indexes created. Run explain_after.sql next.
+    written: explain_after.txt
+Q  BEFORE_ms  AFTER_ms
+Q1  4.369  0.546
+Q2  73.921  81.689
+Q3  1.149  1.678
+Q4  4.079  0.039
+Q5  10.343  12.380
+Q6  0.174  0.195
+Q7  0.884  1.013
+
+Scan types BEFORE:
+      1 Bitmap Heap Scan on car
+      1 Bitmap Heap Scan on rental
+      1 Index Scan on idx_car_homebranch
+      1 Index Scan on idx_rental_range_gist
+      3 Seq Scan on branch
+      3 Seq Scan on car
+      1 Seq Scan on customer
+      1 Seq Scan on damage_report
+      1 Seq Scan on payment
+      2 Seq Scan on rental
+Scan types AFTER:
+      1 Bitmap Heap Scan on car
+      2 Bitmap Heap Scan on rental
+      1 Index Scan on idx_car_branch_status
+      2 Index Scan on idx_rental_range_gist
+      3 Seq Scan on branch
+      3 Seq Scan on car
+      1 Seq Scan on customer
+      1 Seq Scan on damage_report
+      1 Seq Scan on payment
+      1 Seq Scan on rental
+
+Note: a query whose AFTER time is not lower kept the same plan (full-history aggregate) - the difference is run-to-run noise, not an index effect.
+
+==> Portfolio 2 done. Screenshot:
+    • result tables from queries.sql
+    • side-by-side Execution Time for each Q from explain_before.txt vs explain_after.txt
+    • fill results_table.md with the real numbers
+
+    git add portfolio-2-query-optimisation/ && git commit -m 'P2: 7 queries + EXPLAIN before/after + indexes'

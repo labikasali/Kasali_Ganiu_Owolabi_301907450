@@ -1,0 +1,215 @@
+================ Q1 EXPLAIN ANALYZE (AFTER INDEXES) ================
+                                                                                 QUERY PLAN                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=102.11..181.48 rows=25 width=28) (actual time=0.445..0.449 rows=25 loops=1)
+   ->  Incremental Sort  (cost=102.11..473.55 rows=117 width=28) (actual time=0.445..0.447 rows=25 loops=1)
+         Sort Key: cc.name, c.plate_number
+         Presorted Key: cc.name
+         Full-sort Groups: 1  Sort Method: top-N heapsort  Average Memory: 27kB  Peak Memory: 27kB
+         Pre-sorted Groups: 1  Sort Method: top-N heapsort  Average Memory: 27kB  Peak Memory: 27kB
+         ->  Nested Loop Anti Join  (cost=9.64..469.33 rows=117 width=28) (actual time=0.097..0.358 rows=120 loops=1)
+               Join Filter: (r.car_id = c.car_id)
+               ->  Nested Loop  (cost=5.21..373.22 rows=120 width=28) (actual time=0.044..0.285 rows=120 loops=1)
+                     Join Filter: (c.category_id = cc.category_id)
+                     Rows Removed by Join Filter: 480
+                     ->  Index Scan using car_category_name_key on car_category cc  (cost=0.13..12.21 rows=5 width=14) (actual time=0.002..0.004 rows=5 loops=1)
+                     ->  Materialize  (cost=5.08..352.32 rows=120 width=30) (actual time=0.008..0.048 rows=120 loops=5)
+                           ->  Bitmap Heap Scan on car c  (cost=5.08..351.72 rows=120 width=30) (actual time=0.035..0.189 rows=120 loops=1)
+                                 Recheck Cond: (home_branch_id = '1'::bigint)
+                                 Filter: (status <> 'maintenance'::text)
+                                 Heap Blocks: exact=36
+                                 ->  Bitmap Index Scan on idx_car_branch_status  (cost=0.00..5.05 rows=120 width=0) (actual time=0.019..0.019 rows=120 loops=1)
+                                       Index Cond: (home_branch_id = '1'::bigint)
+               ->  Materialize  (cost=4.42..65.55 rows=17 width=8) (actual time=0.000..0.000 rows=0 loops=120)
+                     ->  Bitmap Heap Scan on rental r  (cost=4.42..65.46 rows=17 width=8) (actual time=0.049..0.049 rows=0 loops=1)
+                           Recheck Cond: (rental_range && tstzrange(date_trunc('day'::text, now()), (date_trunc('day'::text, now()) + '3 days'::interval), '[)'::text))
+                           ->  Bitmap Index Scan on idx_rental_range_gist  (cost=0.00..4.42 rows=17 width=0) (actual time=0.049..0.049 rows=0 loops=1)
+                                 Index Cond: (rental_range && tstzrange(date_trunc('day'::text, now()), (date_trunc('day'::text, now()) + '3 days'::interval), '[)'::text))
+ Planning Time: 1.380 ms
+ Execution Time: 0.546 ms
+(26 rows)
+
+
+================ Q2 EXPLAIN ANALYZE (AFTER INDEXES) ================
+                                                                                QUERY PLAN                                                                                
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=5964.65..6871.60 rows=25913 width=76) (actual time=75.442..81.409 rows=39 loops=1)
+   Group Key: (to_char(date_trunc('month'::text, r.pickup_time), 'YYYY-MM'::text)), b.code
+   ->  Sort  (cost=5964.65..6029.43 rows=25913 width=57) (actual time=75.421..76.581 rows=25954 loops=1)
+         Sort Key: (to_char(date_trunc('month'::text, r.pickup_time), 'YYYY-MM'::text)) DESC, b.code, r.rental_id
+         Sort Method: quicksort  Memory: 2345kB
+         ->  Hash Join  (cost=804.70..4065.04 rows=25913 width=57) (actual time=19.548..45.888 rows=25954 loops=1)
+               Hash Cond: (r.pickup_branch_id = b.branch_id)
+               ->  Hash Join  (cost=803.59..3808.68 rows=25913 width=37) (actual time=19.442..33.471 rows=25954 loops=1)
+                     Hash Cond: (p.rental_id = r.rental_id)
+                     ->  Seq Scan on payment p  (cost=0.00..2653.87 rows=133787 width=21) (actual time=0.003..13.004 rows=133787 loops=1)
+                     ->  Hash  (cost=677.69..677.69 rows=10072 width=24) (actual time=5.888..5.889 rows=10090 loops=1)
+                           Buckets: 16384  Batches: 1  Memory Usage: 680kB
+                           ->  Index Scan using idx_rental_pickup_time on rental r  (cost=0.30..677.69 rows=10072 width=24) (actual time=0.022..4.552 rows=10090 loops=1)
+                                 Index Cond: (pickup_time >= (date_trunc('month'::text, now()) - '1 year'::interval))
+               ->  Hash  (cost=1.05..1.05 rows=5 width=12) (actual time=0.009..0.010 rows=5 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Seq Scan on branch b  (cost=0.00..1.05 rows=5 width=12) (actual time=0.004..0.005 rows=5 loops=1)
+ Planning Time: 0.589 ms
+ Execution Time: 81.689 ms
+(19 rows)
+
+
+================ Q3 EXPLAIN ANALYZE (AFTER INDEXES) ================
+                                                                             QUERY PLAN                                                                              
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=2983.47..2983.49 rows=5 width=38) (actual time=1.572..1.576 rows=5 loops=1)
+   Sort Key: (round(((COALESCE(r.rented_days, '0'::numeric) / (((count(*) * 30)))::numeric) * '100'::numeric), 2)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   CTE win
+     ->  Result  (cost=0.00..0.02 rows=1 width=16) (actual time=0.005..0.005 rows=1 loops=1)
+   ->  Hash Left Join  (cost=2983.21..2983.39 rows=5 width=38) (actual time=1.557..1.563 rows=5 loops=1)
+         Hash Cond: (cc.category_id = r.category_id)
+         ->  HashAggregate  (cost=1104.29..1104.35 rows=5 width=22) (actual time=1.480..1.482 rows=5 loops=1)
+               Group Key: cc.category_id
+               Batches: 1  Memory Usage: 24kB
+               ->  Nested Loop  (cost=0.14..1101.29 rows=600 width=14) (actual time=0.865..1.354 rows=600 loops=1)
+                     ->  Seq Scan on car c  (cost=0.00..1086.50 rows=600 width=8) (actual time=0.851..1.081 rows=600 loops=1)
+                           Filter: (status <> 'maintenance'::text)
+                     ->  Memoize  (cost=0.14..0.18 rows=1 width=14) (actual time=0.000..0.000 rows=1 loops=600)
+                           Cache Key: c.category_id
+                           Cache Mode: logical
+                           Hits: 595  Misses: 5  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                           ->  Index Scan using car_category_pkey on car_category cc  (cost=0.13..0.17 rows=1 width=14) (actual time=0.002..0.002 rows=1 loops=5)
+                                 Index Cond: (category_id = c.category_id)
+         ->  Hash  (cost=1878.86..1878.86 rows=5 width=40) (actual time=0.065..0.067 rows=0 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 8kB
+               ->  Subquery Scan on r  (cost=1878.73..1878.86 rows=5 width=40) (actual time=0.064..0.067 rows=0 loops=1)
+                     ->  HashAggregate  (cost=1878.73..1878.81 rows=5 width=40) (actual time=0.064..0.066 rows=0 loops=1)
+                           Group Key: c_1.category_id
+                           Batches: 1  Memory Usage: 24kB
+                           InitPlan 2 (returns $1)
+                             ->  CTE Scan on win  (cost=0.00..0.02 rows=1 width=8) (never executed)
+                           InitPlan 3 (returns $2)
+                             ->  CTE Scan on win win_1  (cost=0.00..0.02 rows=1 width=8) (never executed)
+                           InitPlan 4 (returns $3)
+                             ->  CTE Scan on win win_2  (cost=0.00..0.02 rows=1 width=8) (actual time=0.007..0.007 rows=1 loops=1)
+                           InitPlan 5 (returns $4)
+                             ->  CTE Scan on win win_3  (cost=0.00..0.02 rows=1 width=8) (actual time=0.000..0.001 rows=1 loops=1)
+                           ->  Hash Join  (cost=1116.81..1872.15 rows=520 width=24) (actual time=0.063..0.064 rows=0 loops=1)
+                                 Hash Cond: (r_1.car_id = c_1.car_id)
+                                 ->  Bitmap Heap Scan on rental r_1  (cost=24.31..778.27 rows=520 width=24) (actual time=0.062..0.063 rows=0 loops=1)
+                                       Recheck Cond: (rental_range && tstzrange($3, $4, '[)'::text))
+                                       ->  Bitmap Index Scan on idx_rental_range_gist  (cost=0.00..24.18 rows=520 width=0) (actual time=0.060..0.060 rows=0 loops=1)
+                                             Index Cond: (rental_range && tstzrange($3, $4, '[)'::text))
+                                 ->  Hash  (cost=1085.00..1085.00 rows=600 width=16) (never executed)
+                                       ->  Seq Scan on car c_1  (cost=0.00..1085.00 rows=600 width=16) (never executed)
+ Planning Time: 0.489 ms
+ Execution Time: 1.678 ms
+(43 rows)
+
+
+================ Q4 EXPLAIN ANALYZE (AFTER INDEXES) ================
+                                                                      QUERY PLAN                                                                       
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=45.70..45.71 rows=2 width=73) (actual time=0.019..0.020 rows=0 loops=1)
+   ->  Sort  (cost=45.70..45.71 rows=2 width=73) (actual time=0.019..0.019 rows=0 loops=1)
+         Sort Key: ((EXTRACT(epoch FROM (now() - r.return_time)) / '3600'::numeric)) DESC
+         Sort Method: quicksort  Memory: 25kB
+         ->  Nested Loop  (cost=0.69..45.69 rows=2 width=73) (actual time=0.016..0.017 rows=0 loops=1)
+               ->  Nested Loop  (cost=0.41..29.07 rows=2 width=42) (actual time=0.016..0.017 rows=0 loops=1)
+                     ->  Index Scan using idx_rental_overdue on rental r  (cost=0.13..12.45 rows=2 width=40) (actual time=0.016..0.016 rows=0 loops=1)
+                           Index Cond: (return_time < now())
+                     ->  Index Scan using car_pkey on car c  (cost=0.28..8.30 rows=1 width=18) (never executed)
+                           Index Cond: (car_id = r.car_id)
+               ->  Index Scan using customer_pkey on customer cust  (cost=0.28..8.30 rows=1 width=15) (never executed)
+                     Index Cond: (customer_id = r.customer_id)
+ Planning Time: 0.459 ms
+ Execution Time: 0.039 ms
+(14 rows)
+
+
+================ Q5 EXPLAIN ANALYZE (AFTER INDEXES) ================
+                                                                     QUERY PLAN                                                                      
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1822.47..1822.54 rows=25 width=62) (actual time=12.335..12.342 rows=25 loops=1)
+   ->  Sort  (cost=1822.47..1823.75 rows=512 width=62) (actual time=12.334..12.338 rows=25 loops=1)
+         Sort Key: (count(d.damage_id)) DESC, (sum(d.estimated_cost)) DESC
+         Sort Method: top-N heapsort  Memory: 27kB
+         ->  HashAggregate  (cost=1784.99..1808.03 rows=512 width=62) (actual time=11.165..11.862 rows=1319 loops=1)
+               Group Key: cu.customer_id
+               Filter: (count(d.damage_id) >= 1)
+               Batches: 1  Memory Usage: 833kB
+               ->  Hash Join  (cost=238.06..1773.47 rows=1536 width=36) (actual time=1.402..10.432 rows=1536 loops=1)
+                     Hash Cond: (r.customer_id = cu.customer_id)
+                     ->  Hash Join  (cost=51.56..1582.93 rows=1536 width=22) (actual time=0.300..8.942 rows=1536 loops=1)
+                           Hash Cond: (r.rental_id = d.rental_id)
+                           ->  Seq Scan on rental r  (cost=0.00..1321.01 rows=52001 width=16) (actual time=0.004..4.139 rows=52001 loops=1)
+                           ->  Hash  (cost=32.36..32.36 rows=1536 width=22) (actual time=0.288..0.289 rows=1536 loops=1)
+                                 Buckets: 2048  Batches: 1  Memory Usage: 100kB
+                                 ->  Seq Scan on damage_report d  (cost=0.00..32.36 rows=1536 width=22) (actual time=0.004..0.138 rows=1536 loops=1)
+                     ->  Hash  (cost=124.00..124.00 rows=5000 width=22) (actual time=1.079..1.080 rows=5000 loops=1)
+                           Buckets: 8192  Batches: 1  Memory Usage: 330kB
+                           ->  Seq Scan on customer cu  (cost=0.00..124.00 rows=5000 width=22) (actual time=0.003..0.484 rows=5000 loops=1)
+ Planning Time: 0.481 ms
+ Execution Time: 12.380 ms
+(21 rows)
+
+
+================ Q6 EXPLAIN ANALYZE (AFTER INDEXES) ================
+                                                                                QUERY PLAN                                                                                 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=2695.55..2695.59 rows=15 width=48) (actual time=0.165..0.167 rows=15 loops=1)
+   ->  Sort  (cost=2695.55..2695.62 rows=25 width=48) (actual time=0.164..0.166 rows=15 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: quicksort  Memory: 26kB
+         ->  HashAggregate  (cost=2694.66..2694.97 rows=25 width=48) (actual time=0.154..0.159 rows=17 loops=1)
+               Group Key: pb.code, rb.code
+               Batches: 1  Memory Usage: 24kB
+               ->  Nested Loop  (cost=0.59..2681.67 rows=1039 width=21) (actual time=0.029..0.134 rows=60 loops=1)
+                     ->  Nested Loop  (cost=0.29..173.16 rows=404 width=16) (actual time=0.016..0.051 rows=23 loops=1)
+                           Join Filter: (rb.branch_id = r.return_branch_id)
+                           Rows Removed by Join Filter: 40
+                           ->  Nested Loop  (cost=0.29..145.85 rows=404 width=20) (actual time=0.013..0.039 rows=23 loops=1)
+                                 Join Filter: (pb.branch_id = r.pickup_branch_id)
+                                 Rows Removed by Join Filter: 47
+                                 ->  Index Scan using idx_rental_pickup_time on rental r  (cost=0.29..118.54 rows=404 width=24) (actual time=0.005..0.021 rows=23 loops=1)
+                                       Index Cond: (pickup_time >= (now() - '6 mons'::interval))
+                                       Filter: (pickup_branch_id <> return_branch_id)
+                                       Rows Removed by Filter: 3
+                                 ->  Materialize  (cost=0.00..1.07 rows=5 width=12) (actual time=0.000..0.000 rows=3 loops=23)
+                                       ->  Seq Scan on branch pb  (cost=0.00..1.05 rows=5 width=12) (actual time=0.003..0.004 rows=5 loops=1)
+                           ->  Materialize  (cost=0.00..1.07 rows=5 width=12) (actual time=0.000..0.000 rows=3 loops=23)
+                                 ->  Seq Scan on branch rb  (cost=0.00..1.05 rows=5 width=12) (actual time=0.001..0.002 rows=5 loops=1)
+                     ->  Index Scan using idx_payment_rental on payment p  (cost=0.29..6.18 rows=3 width=21) (actual time=0.003..0.003 rows=3 loops=23)
+                           Index Cond: (rental_id = r.rental_id)
+ Planning Time: 0.516 ms
+ Execution Time: 0.195 ms
+(26 rows)
+
+
+================ Q7 EXPLAIN ANALYZE (AFTER INDEXES) ================
+                                                                                    QUERY PLAN                                                                                    
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=4662.37..4662.38 rows=5 width=78) (actual time=0.979..0.981 rows=4 loops=1)
+   Sort Key: (round(avg((sum(payment.amount))), 2)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  GroupAggregate  (cost=1101.30..4662.31 rows=5 width=78) (actual time=0.914..0.976 rows=4 loops=1)
+         Group Key: cc.name
+         ->  Nested Loop  (cost=1101.30..4657.11 rows=406 width=54) (actual time=0.836..0.954 rows=25 loops=1)
+               ->  Nested Loop  (cost=1092.93..1250.77 rows=406 width=30) (actual time=0.825..0.864 rows=25 loops=1)
+                     Join Filter: (c.category_id = cc.category_id)
+                     Rows Removed by Join Filter: 100
+                     ->  Index Scan using car_category_name_key on car_category cc  (cost=0.13..12.21 rows=5 width=14) (actual time=0.002..0.003 rows=5 loops=1)
+                     ->  Materialize  (cost=1092.80..1209.13 rows=406 width=32) (actual time=0.164..0.170 rows=25 loops=5)
+                           ->  Hash Join  (cost=1092.80..1207.10 rows=406 width=32) (actual time=0.821..0.839 rows=25 loops=1)
+                                 Hash Cond: (r.car_id = c.car_id)
+                                 ->  Index Scan using idx_rental_pickup_time_recent on rental r  (cost=0.29..113.52 rows=406 width=32) (actual time=0.029..0.041 rows=25 loops=1)
+                                       Index Cond: (pickup_time >= (now() - '6 mons'::interval))
+                                 ->  Hash  (cost=1085.00..1085.00 rows=600 width=16) (actual time=0.788..0.788 rows=600 loops=1)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 37kB
+                                       ->  Seq Scan on car c  (cost=0.00..1085.00 rows=600 width=16) (actual time=0.619..0.733 rows=600 loops=1)
+               ->  Aggregate  (cost=8.37..8.38 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=25)
+                     ->  Index Scan using idx_payment_rental on payment  (cost=0.29..8.36 rows=2 width=5) (actual time=0.002..0.003 rows=2 loops=25)
+                           Index Cond: (rental_id = r.rental_id)
+                           Filter: (payment_type = ANY ('{rental,late_fee,mileage_fee,damage_fee}'::text[]))
+                           Rows Removed by Filter: 1
+ Planning Time: 0.357 ms
+ Execution Time: 1.013 ms
+(25 rows)
+
