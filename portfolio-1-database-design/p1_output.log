@@ -1,0 +1,360 @@
+==> [1/4] Drop & recreate schema (schema.sql)
+psql:schema.sql:10: NOTICE:  extension "btree_gist" already exists, skipping
+CREATE EXTENSION
+psql:schema.sql:11: NOTICE:  extension "pgcrypto" already exists, skipping
+CREATE EXTENSION
+psql:schema.sql:13: NOTICE:  table "damage_report" does not exist, skipping
+DROP TABLE
+psql:schema.sql:14: NOTICE:  table "payment" does not exist, skipping
+DROP TABLE
+psql:schema.sql:15: NOTICE:  table "maintenance" does not exist, skipping
+DROP TABLE
+psql:schema.sql:16: NOTICE:  table "rental" does not exist, skipping
+DROP TABLE
+psql:schema.sql:17: NOTICE:  table "driver_licence" does not exist, skipping
+DROP TABLE
+psql:schema.sql:18: NOTICE:  table "customer" does not exist, skipping
+DROP TABLE
+psql:schema.sql:19: NOTICE:  table "car" does not exist, skipping
+DROP TABLE
+psql:schema.sql:20: NOTICE:  table "car_category" does not exist, skipping
+DROP TABLE
+psql:schema.sql:21: NOTICE:  table "branch" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+                                                                        Table "public.rental"
+      Column      |           Type           | Collation | Nullable |                  Default                  | Storage  | Compression | Stats target | Description 
+------------------+--------------------------+-----------+----------+-------------------------------------------+----------+-------------+--------------+-------------
+ rental_id        | bigint                   |           | not null | nextval('rental_rental_id_seq'::regclass) | plain    |             |              | 
+ car_id           | bigint                   |           | not null |                                           | plain    |             |              | 
+ customer_id      | bigint                   |           | not null |                                           | plain    |             |              | 
+ pickup_branch_id | bigint                   |           | not null |                                           | plain    |             |              | 
+ return_branch_id | bigint                   |           | not null |                                           | plain    |             |              | 
+ pickup_time      | timestamp with time zone |           | not null |                                           | plain    |             |              | 
+ return_time      | timestamp with time zone |           | not null |                                           | plain    |             |              | 
+ start_mileage    | integer                  |           | not null |                                           | plain    |             |              | 
+ end_mileage      | integer                  |           | not null |                                           | plain    |             |              | 
+ status           | text                     |           | not null | 'booked'::text                            | extended |             |              | 
+ rental_range     | tstzrange                |           |          |                                           | extended |             |              | 
+Indexes:
+    "rental_pkey" PRIMARY KEY, btree (rental_id)
+    "excl_no_overlapping_rental" EXCLUDE USING gist (car_id WITH =, rental_range WITH &&)
+    "idx_rental_car" btree (car_id)
+    "idx_rental_customer" btree (customer_id)
+    "idx_rental_pickup_br" btree (pickup_branch_id)
+    "idx_rental_pickup_time" btree (pickup_time)
+    "idx_rental_range_gist" gist (rental_range)
+    "idx_rental_return_br" btree (return_branch_id)
+Check constraints:
+    "chk_mileage_monotonic" CHECK (end_mileage >= start_mileage)
+    "chk_return_after_pickup" CHECK (return_time > pickup_time)
+    "rental_end_mileage_check" CHECK (end_mileage >= 0)
+    "rental_start_mileage_check" CHECK (start_mileage >= 0)
+    "rental_status_check" CHECK (status = ANY (ARRAY['booked'::text, 'active'::text, 'returned'::text, 'cancelled'::text]))
+Foreign-key constraints:
+    "rental_car_id_fkey" FOREIGN KEY (car_id) REFERENCES car(car_id) ON DELETE RESTRICT
+    "rental_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+    "rental_pickup_branch_id_fkey" FOREIGN KEY (pickup_branch_id) REFERENCES branch(branch_id)
+    "rental_return_branch_id_fkey" FOREIGN KEY (return_branch_id) REFERENCES branch(branch_id)
+Referenced by:
+    TABLE "damage_report" CONSTRAINT "damage_report_rental_id_fkey" FOREIGN KEY (rental_id) REFERENCES rental(rental_id) ON DELETE CASCADE
+    TABLE "payment" CONSTRAINT "payment_rental_id_fkey" FOREIGN KEY (rental_id) REFERENCES rental(rental_id) ON DELETE CASCADE
+Triggers:
+    trg_licence_valid_on_pickup BEFORE INSERT OR UPDATE OF pickup_time, customer_id ON rental FOR EACH ROW EXECUTE FUNCTION fn_licence_valid_on_pickup()
+    trg_no_rental_during_maintenance BEFORE INSERT OR UPDATE OF rental_range, car_id ON rental FOR EACH ROW EXECUTE FUNCTION fn_no_rental_during_maintenance()
+    trg_set_rental_range BEFORE INSERT OR UPDATE OF pickup_time, return_time ON rental FOR EACH ROW EXECUTE FUNCTION fn_set_rental_range()
+    trg_sync_car_status AFTER INSERT OR UPDATE OF status ON rental FOR EACH ROW EXECUTE FUNCTION fn_sync_car_status()
+Access method: heap
+
+==> [2/4] Load base seed data (seed_data.sql)
+INSERT 0 5
+INSERT 0 5
+DO
+DO
+DO
+   table_name   | count 
+----------------+-------
+ branches       |     5
+ car_categories |     5
+ cars           |   600
+ customers      |  5000
+ licences       |  5000
+ maintenance    |    20
+(6 rows)
+
+==> [3/4] Generate 52,000 rentals (bulk_generator.sql) — this takes about a minute
+Timing is on.
+CREATE FUNCTION
+Time: 2.228 ms
+psql:bulk_generator.sql:260: NOTICE:  Inserted 5000 / 52000 rentals (attempts=5000)
+psql:bulk_generator.sql:260: NOTICE:  Inserted 10000 / 52000 rentals (attempts=10000)
+psql:bulk_generator.sql:260: NOTICE:  Inserted 15000 / 52000 rentals (attempts=15000)
+psql:bulk_generator.sql:260: NOTICE:  Inserted 20000 / 52000 rentals (attempts=20000)
+psql:bulk_generator.sql:260: NOTICE:  Inserted 25000 / 52000 rentals (attempts=25000)
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 29773: Customer 4013 driver's licence expired 2025-09-12 — before pickup 2025-09-20
+psql:bulk_generator.sql:260: NOTICE:  Inserted 30000 / 52000 rentals (attempts=30001)
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 32459: Customer 2251 driver's licence expired 2025-10-06 — before pickup 2025-11-01
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 32709: Customer 926 driver's licence expired 2025-11-03 — before pickup 2025-11-23
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 34120: Customer 4013 driver's licence expired 2025-09-12 — before pickup 2025-11-21
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 34945: Customer 4893 driver's licence expired 2025-10-25 — before pickup 2026-01-06
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 34984: Customer 4379 driver's licence expired 2025-10-16 — before pickup 2025-12-04
+psql:bulk_generator.sql:260: NOTICE:  Inserted 35000 / 52000 rentals (attempts=35006)
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 35302: Customer 4472 driver's licence expired 2025-10-28 — before pickup 2025-11-07
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 36179: Customer 433 driver's licence expired 2025-11-18 — before pickup 2026-01-14
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 36245: Customer 3693 driver's licence expired 2025-09-27 — before pickup 2025-10-27
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 36721: Customer 2115 driver's licence expired 2025-11-24 — before pickup 2025-12-11
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 37292: Customer 3187 driver's licence expired 2025-10-17 — before pickup 2025-11-26
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 37474: Customer 3687 driver's licence expired 2026-01-01 — before pickup 2026-01-13
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 37517: Customer 278 driver's licence expired 2025-10-23 — before pickup 2025-11-09
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 37522: Customer 926 driver's licence expired 2025-11-03 — before pickup 2025-11-18
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 37539: Customer 3935 driver's licence expired 2025-09-21 — before pickup 2025-10-29
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 37665: Customer 115 driver's licence expired 2025-09-19 — before pickup 2025-11-02
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 37821: Customer 2251 driver's licence expired 2025-10-06 — before pickup 2025-10-12
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 38877: Customer 4893 driver's licence expired 2025-10-25 — before pickup 2025-11-11
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 38959: Customer 3693 driver's licence expired 2025-09-27 — before pickup 2025-10-09
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 39400: Customer 4472 driver's licence expired 2025-10-28 — before pickup 2025-11-13
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 39739: Customer 469 driver's licence expired 2025-11-21 — before pickup 2025-12-05
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 39957: Customer 173 driver's licence expired 2025-09-16 — before pickup 2025-11-21
+psql:bulk_generator.sql:260: NOTICE:  Inserted 40000 / 52000 rentals (attempts=40022)
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 40301: Customer 3058 driver's licence expired 2025-09-13 — before pickup 2025-09-24
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 40803: Customer 4678 driver's licence expired 2025-10-06 — before pickup 2025-11-01
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 40836: Customer 926 driver's licence expired 2025-11-03 — before pickup 2026-02-16
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 40874: Customer 115 driver's licence expired 2025-09-19 — before pickup 2025-11-18
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 41480: Customer 3884 driver's licence expired 2025-11-26 — before pickup 2025-12-03
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 41624: Customer 3884 driver's licence expired 2025-11-26 — before pickup 2025-12-17
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 41784: Customer 173 driver's licence expired 2025-09-16 — before pickup 2025-11-16
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 42234: Customer 173 driver's licence expired 2025-09-16 — before pickup 2025-12-15
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 42498: Customer 1250 driver's licence expired 2025-10-02 — before pickup 2025-11-15
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 42645: Customer 4974 driver's licence expired 2025-09-24 — before pickup 2025-10-21
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 42887: Customer 173 driver's licence expired 2025-09-16 — before pickup 2025-12-20
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 43120: Customer 926 driver's licence expired 2025-11-03 — before pickup 2026-01-04
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 43363: Customer 1167 driver's licence expired 2025-12-07 — before pickup 2026-02-01
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 43369: Customer 1842 driver's licence expired 2025-11-05 — before pickup 2026-01-12
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 43438: Customer 1250 driver's licence expired 2025-10-02 — before pickup 2026-01-19
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 43954: Customer 115 driver's licence expired 2025-09-19 — before pickup 2025-11-07
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 44087: Customer 4974 driver's licence expired 2025-09-24 — before pickup 2025-10-06
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 44171: Customer 4974 driver's licence expired 2025-09-24 — before pickup 2025-10-17
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 44560: Customer 4549 driver's licence expired 2025-11-09 — before pickup 2026-01-22
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 44745: Customer 3687 driver's licence expired 2026-01-01 — before pickup 2026-01-09
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 44810: Customer 3377 driver's licence expired 2025-11-23 — before pickup 2025-12-15
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45021: Customer 115 driver's licence expired 2025-09-19 — before pickup 2025-10-29
+psql:bulk_generator.sql:260: NOTICE:  Inserted 45000 / 52000 rentals (attempts=45044)
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45085: Customer 2183 driver's licence expired 2025-10-11 — before pickup 2026-01-23
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45102: Customer 433 driver's licence expired 2025-11-18 — before pickup 2026-02-13
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45345: Customer 1250 driver's licence expired 2025-10-02 — before pickup 2025-12-11
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45576: Customer 3490 driver's licence expired 2025-09-11 — before pickup 2025-11-28
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45583: Customer 2836 driver's licence expired 2025-10-21 — before pickup 2025-12-10
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45780: Customer 115 driver's licence expired 2025-09-19 — before pickup 2025-10-03
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45810: Customer 4013 driver's licence expired 2025-09-12 — before pickup 2026-01-17
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45832: Customer 1167 driver's licence expired 2025-12-07 — before pickup 2026-01-04
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45959: Customer 3113 driver's licence expired 2025-09-20 — before pickup 2025-12-17
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45987: Customer 3490 driver's licence expired 2025-09-11 — before pickup 2025-09-30
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 45998: Customer 278 driver's licence expired 2025-10-23 — before pickup 2025-12-12
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46022: Customer 4472 driver's licence expired 2025-10-28 — before pickup 2025-11-23
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46309: Customer 3884 driver's licence expired 2025-11-26 — before pickup 2026-01-16
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46397: Customer 236 driver's licence expired 2025-10-18 — before pickup 2025-11-28
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46423: Customer 4379 driver's licence expired 2025-10-16 — before pickup 2026-02-12
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46452: Customer 4893 driver's licence expired 2025-10-25 — before pickup 2025-11-30
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46489: Customer 1167 driver's licence expired 2025-12-07 — before pickup 2026-01-24
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46684: Customer 926 driver's licence expired 2025-11-03 — before pickup 2025-12-06
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46847: Customer 2071 driver's licence expired 2025-09-16 — before pickup 2025-10-06
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46909: Customer 931 driver's licence expired 2026-01-24 — before pickup 2026-01-25
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 46950: Customer 926 driver's licence expired 2025-11-03 — before pickup 2026-03-01
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47050: Customer 4379 driver's licence expired 2025-10-16 — before pickup 2026-02-06
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47095: Customer 1196 driver's licence expired 2025-11-05 — before pickup 2025-12-06
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47115: Customer 2836 driver's licence expired 2025-10-21 — before pickup 2025-11-20
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47160: Customer 3637 driver's licence expired 2025-09-21 — before pickup 2025-12-12
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47178: Customer 1167 driver's licence expired 2025-12-07 — before pickup 2025-12-23
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47358: Customer 4514 driver's licence expired 2025-11-14 — before pickup 2025-12-27
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47507: Customer 2071 driver's licence expired 2025-09-16 — before pickup 2025-12-24
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47646: Customer 4974 driver's licence expired 2025-09-24 — before pickup 2026-02-07
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 47699: Customer 4472 driver's licence expired 2025-10-28 — before pickup 2025-12-28
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48213: Customer 647 driver's licence expired 2025-10-07 — before pickup 2025-12-07
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48279: Customer 3884 driver's licence expired 2025-11-26 — before pickup 2025-11-30
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48370: Customer 173 driver's licence expired 2025-09-16 — before pickup 2025-12-08
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48442: Customer 1250 driver's licence expired 2025-10-02 — before pickup 2026-03-13
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48491: Customer 688 driver's licence expired 2025-12-23 — before pickup 2025-12-24
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48526: Customer 3187 driver's licence expired 2025-10-17 — before pickup 2025-12-20
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48621: Customer 1167 driver's licence expired 2025-12-07 — before pickup 2026-01-26
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48658: Customer 115 driver's licence expired 2025-09-19 — before pickup 2025-12-25
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48720: Customer 4974 driver's licence expired 2025-09-24 — before pickup 2026-01-06
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48772: Customer 2071 driver's licence expired 2025-09-16 — before pickup 2025-12-19
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48781: Customer 647 driver's licence expired 2025-10-07 — before pickup 2025-12-01
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48850: Customer 278 driver's licence expired 2025-10-23 — before pickup 2026-01-05
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 48909: Customer 2183 driver's licence expired 2025-10-11 — before pickup 2026-01-03
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49056: Customer 469 driver's licence expired 2025-11-21 — before pickup 2026-02-13
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49081: Customer 773 driver's licence expired 2025-10-02 — before pickup 2025-12-05
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49125: Customer 3150 driver's licence expired 2025-12-17 — before pickup 2026-01-07
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49148: Customer 439 driver's licence expired 2025-12-25 — before pickup 2026-05-31
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49295: Customer 4472 driver's licence expired 2025-10-28 — before pickup 2025-12-02
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49370: Customer 4013 driver's licence expired 2025-09-12 — before pickup 2025-11-01
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49489: Customer 3058 driver's licence expired 2025-09-13 — before pickup 2026-01-30
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49642: Customer 1842 driver's licence expired 2025-11-05 — before pickup 2025-12-23
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49747: Customer 439 driver's licence expired 2025-12-25 — before pickup 2026-01-17
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49797: Customer 2149 driver's licence expired 2026-01-11 — before pickup 2026-03-16
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49820: Customer 4764 driver's licence expired 2026-01-08 — before pickup 2026-01-17
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49881: Customer 2023 driver's licence expired 2025-12-25 — before pickup 2026-01-17
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 49985: Customer 3944 driver's licence expired 2026-02-01 — before pickup 2026-03-05
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 50063: Customer 1842 driver's licence expired 2025-11-05 — before pickup 2025-11-18
+psql:bulk_generator.sql:260: NOTICE:  Inserted 50000 / 52000 rentals (attempts=50101)
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 50245: Customer 1235 driver's licence expired 2025-12-09 — before pickup 2026-02-01
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 50359: Customer 236 driver's licence expired 2025-10-18 — before pickup 2026-03-18
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 50573: Customer 2110 driver's licence expired 2026-02-05 — before pickup 2026-03-02
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 50619: Customer 2149 driver's licence expired 2026-01-11 — before pickup 2026-01-13
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 50728: Customer 688 driver's licence expired 2025-12-23 — before pickup 2026-01-13
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 50927: Customer 4472 driver's licence expired 2025-10-28 — before pickup 2025-12-11
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51070: Customer 439 driver's licence expired 2025-12-25 — before pickup 2026-03-25
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51132: Customer 3693 driver's licence expired 2025-09-27 — before pickup 2026-01-19
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51141: Customer 3637 driver's licence expired 2025-09-21 — before pickup 2025-11-11
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51345: Customer 3935 driver's licence expired 2025-09-21 — before pickup 2026-01-31
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51521: Customer 3113 driver's licence expired 2025-09-20 — before pickup 2026-03-12
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51666: Customer 278 driver's licence expired 2025-10-23 — before pickup 2025-11-24
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51729: Customer 236 driver's licence expired 2025-10-18 — before pickup 2026-02-20
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51930: Customer 58 driver's licence expired 2025-12-21 — before pickup 2026-04-27
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51951: Customer 278 driver's licence expired 2025-10-23 — before pickup 2026-02-05
+psql:bulk_generator.sql:260: NOTICE:  Skipped at attempt 51960: Customer 1196 driver's licence expired 2025-11-05 — before pickup 2025-12-18
+psql:bulk_generator.sql:260: NOTICE:  Done. inserted=52000  attempts=52117
+DO
+Time: 48249.692 ms (00:48.250)
+DROP FUNCTION
+Time: 1.459 ms
+   table_name   | count  
+----------------+--------
+ damage_reports |   1536
+ rentals        |  52000
+ payments       | 133787
+(3 rows)
+
+Time: 21.122 ms
+   ym    | rentals 
+---------+---------
+ 2026-06 |       8
+ 2026-05 |      36
+ 2026-04 |     222
+ 2026-03 |     578
+ 2026-02 |     966
+ 2026-01 |    1773
+ 2025-12 |    3472
+ 2025-11 |    3034
+ 2025-10 |    3313
+ 2025-09 |    3446
+ 2025-08 |    3481
+ 2025-07 |    3441
+ 2025-06 |    3663
+ 2025-05 |    3543
+ 2025-04 |    3602
+ 2025-03 |    3591
+ 2025-02 |    3182
+ 2025-01 |    3432
+ 2024-12 |    4812
+ 2024-11 |    2405
+(20 rows)
+
+Time: 20.136 ms
+==> [4/4] Run constraint tests — every block MUST FAIL (constraint_tests.sql)
+================================================================
+Constraint tests for DriveEasy Rentals — every test should FAIL
+================================================================
+
+--- TEST 1 — EXCLUDE: two overlapping rentals for the SAME car MUST FAIL ---
+psql:constraint_tests.sql:32: ERROR:  conflicting key value violates exclusion constraint "excl_no_overlapping_rental"
+DETAIL:  Key (car_id, rental_range)=(556, ["2026-01-30 05:30:00+01","2026-02-03 05:30:00+01")) conflicts with existing key (car_id, rental_range)=(556, ["2026-01-30 05:30:00+01","2026-02-03 04:30:00+01")).
+CONTEXT:  SQL statement "INSERT INTO rental (car_id, customer_id, pickup_branch_id, return_branch_id,
+                         pickup_time, return_time, start_mileage, end_mileage)
+    VALUES (c_id, cust, br, br, p, r + '1 hour'::interval, 0, 50)"
+PL/pgSQL function inline_code_block line 8 at SQL statement
+[EXPECT_FAIL] SQLSTATE 23P01 (exclusion_violation) above
+
+--- TEST 2 — CHECK: return_time > pickup_time (returns at same time) ---
+psql:constraint_tests.sql:41: ERROR:  new row for relation "rental" violates check constraint "chk_return_after_pickup"
+DETAIL:  Failing row contains (52119, 366, 1, 1, 1, 2026-11-12 13:38:48.229889+01, 2026-11-12 13:38:48.229889+01, 0, 10, booked, empty).
+[EXPECT_FAIL] SQLSTATE 23514 (check_violation) on chk_return_after_pickup
+
+--- TEST 3 — CHECK: end_mileage >= start_mileage (odometer backwards) ---
+psql:constraint_tests.sql:50: ERROR:  new row for relation "rental" violates check constraint "chk_mileage_monotonic"
+DETAIL:  Failing row contains (52120, 366, 1, 1, 1, 2026-11-12 13:38:48.303676+01, 2026-11-13 13:38:48.303676+01, 5000, 4000, booked, ["2026-11-12 13:38:48.303676+01","2026-11-13 13:38:48.303676+01"...).
+[EXPECT_FAIL] SQLSTATE 23514 (check_violation) on chk_mileage_monotonic
+
+--- TEST 4 — CHECK: payment.amount > 0 ---
+psql:constraint_tests.sql:56: ERROR:  new row for relation "payment" violates check constraint "payment_amount_check"
+DETAIL:  Failing row contains (133788, 1, 0.00, deposit, 2026-11-12 13:38:48.305989+01, card).
+[EXPECT_FAIL] SQLSTATE 23514 on payment_amount_check
+
+--- TEST 5 — CHECK: daily_rate > 0 on car_category ---
+psql:constraint_tests.sql:62: ERROR:  new row for relation "car_category" violates check constraint "car_category_daily_rate_check"
+DETAIL:  Failing row contains (6, BadCat, 0.00, 1000.00).
+[EXPECT_FAIL] SQLSTATE 23514 on car_category_daily_rate_check
+
+--- TEST 6 — UNIQUE: duplicate plate_number ---
+psql:constraint_tests.sql:70: ERROR:  duplicate key value violates unique constraint "car_plate_number_key"
+DETAIL:  Key (plate_number)=(LAG-366BF) already exists.
+[EXPECT_FAIL] SQLSTATE 23505 (unique_violation) on car_plate_number_key
+
+--- TEST 7 — FK: rental.car_id referencing a non-existent car ---
+psql:constraint_tests.sql:78: ERROR:  insert or update on table "rental" violates foreign key constraint "rental_car_id_fkey"
+DETAIL:  Key (car_id)=(9999999) is not present in table "car".
+[EXPECT_FAIL] SQLSTATE 23503 (foreign_key_violation)
+
+--- TEST 8 — TRIGGER: licence expired before pickup date ---
+psql:constraint_tests.sql:97: ERROR:  Customer 5001 driver's licence expired 2019-01-01 — before pickup 2026-11-19
+CONTEXT:  PL/pgSQL function fn_licence_valid_on_pickup() line 10 at RAISE
+SQL statement "INSERT INTO rental (car_id, customer_id, pickup_branch_id, return_branch_id,
+                        pickup_time, return_time, start_mileage, end_mileage)
+    VALUES (1, cid, 1, 1, now_dt + '7 days'::interval, now_dt + '8 days'::interval, 0, 50)"
+PL/pgSQL function inline_code_block line 10 at SQL statement
+[EXPECT_FAIL] SQLSTATE P0001 raised by trg_licence_valid_on_pickup
+
+--- TEST 9 — TRIGGER: rental overlapping a maintenance window ---
+DO
+[EXPECT_FAIL] SQLSTATE P0001 raised by trg_no_rental_during_maintenance
+
+--- TEST 10 — CHECK: maintenance end_time > start_time ---
+psql:constraint_tests.sql:123: ERROR:  new row for relation "maintenance" violates check constraint "chk_maint_end_after_start"
+DETAIL:  Failing row contains (21, 1, 2026-11-12 13:38:48.319152+01, 2026-11-12 13:38:48.319152+01, Bad, 1000.00).
+[EXPECT_FAIL] SQLSTATE 23514 on chk_maint_end_after_start
+
+--- TEST 11 — CHECK: car.status invalid enum ---
+psql:constraint_tests.sql:130: ERROR:  new row for relation "car" violates check constraint "car_status_check"
+DETAIL:  Failing row contains (602, TEST-999XX, 1, 1, 0, stolen).
+[EXPECT_FAIL] SQLSTATE 23514 on car_status_check
+
+================================================================
+End of constraint tests. All blocks above should have shown an ERROR.
+================================================================
+
+==> Portfolio 1 done. Screenshot:
+    • \d+ rental  (shows the EXCLUDE constraint)
+    • final counts (rentals/payments/damage_reports)
+    • every constraint_tests.sql block failing with its SQLSTATE
+
+    git add portfolio-1-database-design/ && git commit -m 'P1: ER + 3NF + schema + 55k rentals + constraint tests'
